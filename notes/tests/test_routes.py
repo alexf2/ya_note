@@ -5,7 +5,6 @@ from django.contrib.auth import get_user_model
 from django.test import TestCase
 from django.urls import reverse
 
-from notes.forms import NoteForm
 from notes.models import Note
 # from notes.models import Note
 from notes.urls import app_name as notes
@@ -24,7 +23,10 @@ class RoutesAnonimousTest(TestCase):
             author=cls.author,)
 
     def test_public_availability(self):
-        """Проверяем, что нужные страницы доступны анонимному пользователю."""
+        """
+        Проверяем, что нужные страницы доступны анонимному пользователю:
+        главаная страница, регистрация, вход, уведомление о выходе.
+        """
         cli = self.client
         urls = (f'{notes}:home', 'users:signup', 'users:login',  # noqa: E231
                 'users:logout')
@@ -38,7 +40,8 @@ class RoutesAnonimousTest(TestCase):
     def test_public_redirection(self):
         """
         Проверяем, что при заходе анонимного пользователя на данные страницы
-        происходит редирект на login.
+        происходит редирект на login:
+            все операции с заметками, включая list.
         """
         cli = self.client
         urls = (
@@ -113,10 +116,3 @@ class RoutesAuthorizedTest(TestCase):
                 url = reverse(path_name, args=params)
                 respone = verb(url)
                 self.assertEqual(respone.status_code, status_code)
-
-    def test_note_create_has_form(self):
-        cli = self.client
-        cli.force_login(self.author1)
-        response = cli.get(reverse(f'{notes}:add'))  # noqa: E231
-        self.assertIn('form', response.context)
-        self.assertIsInstance(response.context['form'], NoteForm)

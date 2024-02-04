@@ -2,6 +2,7 @@ from django.contrib.auth import get_user_model
 from django.test import TestCase
 from django.urls import reverse
 
+from notes.forms import NoteForm
 from notes.models import Note
 # from notes.models import Note
 from notes.urls import app_name as notes
@@ -75,7 +76,7 @@ class AcessNotesTest(TestCase):
         self.assertEqual(note_objects[0].slug, 'note21')
         self.assertEqual(note_objects[1].slug, 'note22')
 
-    def test_user_can_see_only_own_notes1(self):
+    def test_notes_are_sorted(self):
         """Проверяем, что заметки отсртированы по id ASC."""
         cli = self.client
         url = reverse(f'{notes}:list')  # noqa: E231
@@ -87,3 +88,20 @@ class AcessNotesTest(TestCase):
         all_note_slugs = [n.slug for n in note_objects]
         sorted_notes = sorted(all_note_slugs)
         self.assertEqual(all_note_slugs, sorted_notes)
+
+    def test_note_create_has_form(self):
+        """На страницу добавления заметки передаётся форма"""
+        cli = self.client
+        cli.force_login(self.author1)
+        response = cli.get(reverse(f'{notes}:add'))  # noqa: E231
+        self.assertIn('form', response.context)
+        self.assertIsInstance(response.context['form'], NoteForm)
+
+    def test_note_edit_has_form(self):
+        """На страницу редактирования заметки передаётся форма"""
+        cli = self.client
+        cli.force_login(self.author1)
+        response = cli.get(reverse(f'{notes}:edit',  # noqa: E231
+                                   args=('note11',)))
+        self.assertIn('form', response.context)
+        self.assertIsInstance(response.context['form'], NoteForm)
